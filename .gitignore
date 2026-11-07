@@ -1,0 +1,27 @@
+logs
+*.log
+pnpm-debug.log*
+
+node_modules
+dist
+coverage
+*.local
+.env
+.env.*
+!.env.example
+
+# Playwright
+test-results
+playwright-report
+
+# Editor / OS
+.zed
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.sw?
+.directory
+
+# Harness output
+out
