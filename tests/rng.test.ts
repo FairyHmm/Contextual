@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { mulberry32 } from "../src/shared/rng";
+import { mulberry32 } from "../src/sim/utils/rng";
 
 function take(seed: number, count: number): number[] {
   const next = mulberry32(seed);
