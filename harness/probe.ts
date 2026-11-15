@@ -16,7 +16,7 @@ try {
   await page.goto(base);
   const result = await page.evaluate(async () => {
     const stats = (xs: number[]) => {
-      const s = [...xs].sort((a, b) => a - b);
+      const s = xs.toSorted((a, b) => a - b);
       const at = (p: number) =>
         s[Math.min(s.length - 1, Math.floor(p * s.length))] ?? 0;
       const mean = xs.reduce((a, b) => a + b, 0) / xs.length;

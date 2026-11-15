@@ -11,7 +11,8 @@ pnpm dev          # serve the demos, e.g. /?variant=canvas&n=1000&seed=1&motion=
 pnpm test         # unit tests (seeded RNG, URL params, physics)
 pnpm smoke        # open headed Firefox at 1280x720, screenshot to out/
 pnpm equivalence  # same frame, every method must match the reference (out/); --motion clusters
-pnpm bench        # frame times as markdown tables; --help for filters, --runs, --motion
+pnpm bench time   # capped 60 Hz: FPS, dropped vsyncs and the frame tail
+pnpm bench frames # uncapped: frame cost and the same scene state
 pnpm check        # format, typecheck, lint, test
 ```
 
