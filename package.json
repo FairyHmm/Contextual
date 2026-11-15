@@ -15,7 +15,9 @@
     "format": "oxfmt --write .",
     "format:check": "oxfmt --check .",
     "check": "pnpm format:check && pnpm typecheck && pnpm lint && pnpm test",
-    "smoke": "node harness/smoke.ts"
+    "smoke": "node harness/smoke.ts",
+    "equivalence": "node harness/equivalence.ts",
+    "bench": "node harness/bench.ts"
   },
   "devDependencies": {
     "@types/node": "^26.6.6",
