@@ -19,6 +19,6 @@ pnpm check        # format, typecheck, lint, test
 
 - `src/app/`: URL params and frame drivers
 - `src/sim/`: one file per motion (`line`, `clusters`; boids later), plus `utils/` for the seeded RNG and world state (`STAGE`/`SPEED` defaults)
-- `src/render/`: the renderer contract, shared visual constants (`CIRCLE`, `STYLE`), and one file per variant
+- `src/render/`: the renderer contract, shared visual constants (`CIRCLE`, `STYLE`), and the `canvas/` and `html/` variants (shared setup plus one file per method family, aggregated by `index.ts`)
 - `harness/`: Playwright measurement scripts
 - `out/`: harness output (gitignored)

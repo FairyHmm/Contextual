@@ -12,9 +12,3 @@ export interface VariantDef {
   default: string;
   methods: Record<string, RendererFactory>;
 }
-
-/** How a coordinate is turned into the pixel value that gets drawn. */
-export type Snap = (v: number) => number;
-
-/** Rounds to a whole pixel. */
-export const whole: Snap = v => Math.round(v);
