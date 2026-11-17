@@ -18,14 +18,18 @@ export const red = wrap("\x1b[31m", "\x1b[39m");
 export const cyan = wrap("\x1b[36m", "\x1b[39m");
 export const magenta = wrap("\x1b[35m", "\x1b[39m");
 
-export const banner = (
-  version: string,
-  mode: Mode,
-  runs: number,
-  width: number,
-  height: number,
-  order: "forward" | "abba" = "forward",
-): string => {
+export interface BannerOptions {
+  version: string;
+  mode: Mode;
+  runs: number;
+  width: number;
+  height: number;
+  order: "forward" | "abba";
+  motion: string;
+}
+
+export const banner = (opts: BannerOptions): string => {
+  const { version, mode, runs, width, height, order, motion } = opts;
   const windowText = mode.timeBased
     ? `${mode.seconds} s window after ${mode.warmupSeconds} s warm-up`
     : `${mode.frames} frames after ${mode.warmup} warmup`;
@@ -51,7 +55,8 @@ export const banner = (
       `Firefox ${version} · ${width}×${height} · ` +
         (mode.capped
           ? cyan(`capped ${mode.hz} Hz vsync`)
-          : magenta("uncapped rAF")),
+          : magenta("uncapped rAF")) +
+        ` · motion: ${motion}`,
     ),
     `${windowText} · ${runs} run${runs > 1 ? "s" : ""} · ` +
       (order === "abba" ? "ABBA order" : "forward order"),

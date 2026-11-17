@@ -1,4 +1,4 @@
-import type { Page } from "playwright";
+import type { Browser, Page } from "playwright";
 
 import {
   type App,
@@ -8,6 +8,7 @@ import {
   launch,
   startApp,
 } from "./lib.ts";
+import { type Row, collectRecords, createRunDir, writeRunLog } from "./log.ts";
 import { banner, heading, paintTable, yellow } from "./paint.ts";
 import { type Mode, header, summarize } from "./report.ts";
 import { type Sample, measure, recordFrames } from "./sample.ts";
@@ -23,6 +24,10 @@ export interface RunOptions {
   mode: Mode;
   /** `abba` reverses the entry order every other repeat (A B B A for two). */
   order: "forward" | "abba";
+  /** Base folder for per-run CSVs; one timestamped folder per session. */
+  logDir: string;
+  /** Write the CSVs (default true; `--no-log` turns it off). */
+  log: boolean;
 }
 
 async function collect(
@@ -71,6 +76,31 @@ async function collect(
   return samples;
 }
 
+const metaOf = (
+  browser: Browser,
+  opts: RunOptions,
+  mode: Mode,
+  entries: Entry[],
+): Record<string, unknown> => ({
+  date: new Date().toISOString(),
+  browser: browser.version(),
+  viewport: VIEWPORT,
+  motion: opts.motion,
+  ns: opts.ns,
+  runs: opts.runs,
+  order: opts.order,
+  mode: mode.timeBased ? "time" : "frames",
+  capHz: mode.capped ? mode.hz : 0,
+  seconds: mode.seconds,
+  frames: mode.frames,
+  warmup: mode.timeBased ? mode.warmupSeconds : mode.warmup,
+  methods: entries.map(e => e.name),
+  prefs: {
+    "layout.frame_rate": mode.capped ? mode.hz : 0,
+    "privacy.reduceTimerPrecision": false,
+  },
+});
+
 export async function run(opts: RunOptions): Promise<void> {
   const app = await startApp();
   const browser = await launch({
@@ -89,17 +119,25 @@ export async function run(opts: RunOptions): Promise<void> {
     const warmupMs = mode.timeBased ? mode.warmupSeconds * 1000 : 0;
     await page.addInitScript(recordFrames(limit, totalMs, warmupMs));
 
+    const dir = opts.log ? await createRunDir(opts.logDir) : undefined;
+    const runRecords: Row[] = [];
+    const frameRecords: Row[] = [];
+    const ctx = { mode, motion: opts.motion };
+    const meta = metaOf(browser, opts, mode, entries);
+    if (dir !== undefined) console.log(`\nlog: ${dir}`);
+
     const COLUMNS = header(mode, opts.runs);
     const HEADER = COLUMNS.map(c => c.name);
     console.log(
-      banner(
-        browser.version(),
+      banner({
+        version: browser.version(),
         mode,
-        opts.runs,
-        VIEWPORT.width,
-        VIEWPORT.height,
-        opts.order,
-      ),
+        runs: opts.runs,
+        width: VIEWPORT.width,
+        height: VIEWPORT.height,
+        order: opts.order,
+        motion: opts.motion,
+      }),
     );
     if (shared.length > 0) {
       const names = shared
@@ -115,11 +153,19 @@ export async function run(opts: RunOptions): Promise<void> {
     }
     for (const n of opts.ns) {
       const samples = await collect(page, app, entries, n, opts, budget);
+      collectRecords(entries, samples, ctx, n, runRecords, frameRecords);
       const rows = entries.map(e =>
         summarize(e.name, samples.get(e.name) ?? [], mode, opts.runs),
       );
       console.log(`\n${heading(n)}\n`);
       console.log(paintTable(table(HEADER, rows), COLUMNS, mode.capped));
+      if (dir !== undefined) {
+        await writeRunLog(dir, {
+          runs: runRecords,
+          frames: frameRecords,
+          meta,
+        });
+      }
     }
   } finally {
     await browser.close();

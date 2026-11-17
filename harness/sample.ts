@@ -48,9 +48,21 @@ const percentile = (a: number[], p: number): number =>
 
 export const median = (a: number[]) => percentile(a, 0.5);
 
+/** One measured frame, as recorded in the page. */
+export interface Frame {
+  /** RAF timestamp, ms. */
+  t: number;
+  /** Interval since the previous frame, ms. */
+  interval: number;
+  /** Callback duration (step + render), ms. */
+  js: number;
+}
+
 export interface Sample {
   /** Median rAF interval, ms. */
   frame: number;
+  /** Mean rAF interval, ms. */
+  frameMean: number;
   frameP95: number;
   frameP99: number;
   /** Frames presented per second of wall time. */
@@ -63,6 +75,10 @@ export interface Sample {
   low1: number;
   js: number;
   browser: number;
+  /** Number of measured frames. */
+  count: number;
+  /** Per-frame records in the measured window. */
+  frames: Frame[];
 }
 
 export interface MeasureOptions {
@@ -125,8 +141,19 @@ export async function measure(
     worst.length > 0
       ? 1000 / (worst.slice(0, tail).reduce((sum, n) => sum + n, 0) / tail)
       : 0;
+  const frameMean =
+    intervals.length > 0
+      ? intervals.reduce((sum, interval) => sum + interval, 0) /
+        intervals.length
+      : 0;
+  const frames: Frame[] = kept.map(([t, interval, js]) => ({
+    t,
+    interval,
+    js,
+  }));
   return {
     frame: median(intervals),
+    frameMean,
     frameP95: percentile(intervals, 0.95),
     frameP99: percentile(intervals, 0.99),
     delivered,
@@ -135,5 +162,7 @@ export async function measure(
     low1,
     js: median(work),
     browser: median(browser),
+    count: kept.length,
+    frames,
   };
 }

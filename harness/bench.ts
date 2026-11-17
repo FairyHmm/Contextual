@@ -1,6 +1,7 @@
 import { parseArgs } from "node:util";
 
 import { FILTER_FLAGS, MOTION_FLAG, count, list, motionOf } from "./lib.ts";
+import { DEFAULT_LOG_DIR } from "./log.ts";
 import { type Mode } from "./report.ts";
 import { run } from "./run.ts";
 
@@ -11,7 +12,15 @@ const COMMON = `  --method a,b      what to measure: html (a variant), html/tran
   --n 1000,5000    object counts (default 1000,5000)
   --runs 1         repeats per case, interleaved; adds a min-max Range column
   --order forward|abba  repeat order (default: forward); abba reverses the
-                        entry order every other repeat (A B B A for two)`;
+                        entry order every other repeat (A B B A for two)
+  --log-dir <dir>  base folder for run data (default: ${DEFAULT_LOG_DIR});
+                    one timestamped folder per session
+  --no-log         skip writing the run CSVs`;
+
+const LOG_FLAGS = {
+  "log-dir": { type: "string" },
+  "no-log": { type: "boolean" },
+} as const;
 
 const HELP = `pnpm bench <command> [options]
 
@@ -65,6 +74,8 @@ interface CommonValues {
   runs?: string | undefined;
   motion?: string | undefined;
   order?: string | undefined;
+  "log-dir"?: string | undefined;
+  "no-log"?: boolean | undefined;
 }
 
 const commonOf = (values: CommonValues) => ({
@@ -74,6 +85,8 @@ const commonOf = (values: CommonValues) => ({
   runs: whole(values.runs, "runs"),
   motion: motionOf(values.motion),
   order: orderOf(values.order),
+  logDir: values["log-dir"] ?? DEFAULT_LOG_DIR,
+  log: values["no-log"] !== true,
 });
 
 const command = process.argv[2];
@@ -93,6 +106,7 @@ if (command === "time") {
     options: {
       ...FILTER_FLAGS,
       ...MOTION_FLAG,
+      ...LOG_FLAGS,
       n: { type: "string", default: "1000,5000" },
       runs: { type: "string", default: "1" },
       order: { type: "string", default: "forward" },
@@ -122,6 +136,7 @@ if (command === "time") {
     options: {
       ...FILTER_FLAGS,
       ...MOTION_FLAG,
+      ...LOG_FLAGS,
       n: { type: "string", default: "1000,5000" },
       runs: { type: "string", default: "1" },
       order: { type: "string", default: "forward" },
