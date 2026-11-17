@@ -4,12 +4,14 @@ import { FILTER_FLAGS, MOTION_FLAG, count, list, motionOf } from "./lib.ts";
 import { type Mode } from "./report.ts";
 import { run } from "./run.ts";
 
-const COMMON = `  --variant a,b    only these variants (groups), e.g. canvas,html
-  --method a,b     only methods with these names, in any variant
-  --query k=v&k=v  extra URL params for every page (e.g. a later scenario)
+const COMMON = `  --method a,b      what to measure: html (a variant), html/translate
+                    (one method), or translate (that name in every variant)
+  --query k=v&k=v   extra URL params for every page (e.g. a later scenario)
   --motion line|clusters  motion scenario (default: line)
   --n 1000,5000    object counts (default 1000,5000)
-  --runs 1         repeats per case, interleaved; adds a min-max Range column`;
+  --runs 1         repeats per case, interleaved; adds a min-max Range column
+  --order forward|abba  repeat order (default: forward); abba reverses the
+                        entry order every other repeat (A B B A for two)`;
 
 const HELP = `pnpm bench <command> [options]
 
@@ -24,19 +26,13 @@ const TIME_HELP = `pnpm bench time [options]
 ${COMMON}
   --seconds 5      measured window in seconds (default 5)
   --warmup 2       warm-up in seconds (default 2)
-  --hz 60          refresh cap in Hz (default 60)
-
-The sim advances by real elapsed time. A slow method presents fewer frames and
-misses vsyncs; the run ends after the window.`;
+  --hz 60          refresh cap in Hz (default 60)`;
 
 const FRAMES_HELP = `pnpm bench frames [options]
 
 ${COMMON}
   --frames 300     measured frames (default 300)
-  --warmup 60      warm-up frames (default 60)
-
-The sim advances a fixed 1/60 s per frame, every method reaches the same scene
-state; slower methods take longer in wall-clock time.`;
+  --warmup 60      warm-up frames (default 60)`;
 
 const positive = (s: string | undefined, name: string): number => {
   const n = Number(s);
@@ -56,22 +52,28 @@ const whole = (s: string | undefined, name: string): number => {
   return n;
 };
 
+const orderOf = (s: string | undefined): "forward" | "abba" => {
+  if (s === undefined || s === "forward") return "forward";
+  if (s === "abba") return "abba";
+  throw new Error(`unknown order ${s}. Available: forward, abba`);
+};
+
 interface CommonValues {
-  variant?: string | undefined;
   method?: string | undefined;
   query?: string | undefined;
   n?: string | undefined;
   runs?: string | undefined;
   motion?: string | undefined;
+  order?: string | undefined;
 }
 
 const commonOf = (values: CommonValues) => ({
-  variant: values.variant,
   method: values.method,
   query: values.query,
   ns: list(values.n).map(count),
   runs: whole(values.runs, "runs"),
   motion: motionOf(values.motion),
+  order: orderOf(values.order),
 });
 
 const command = process.argv[2];
@@ -93,6 +95,7 @@ if (command === "time") {
       ...MOTION_FLAG,
       n: { type: "string", default: "1000,5000" },
       runs: { type: "string", default: "1" },
+      order: { type: "string", default: "forward" },
       seconds: { type: "string", default: "5" },
       warmup: { type: "string", default: "2" },
       hz: { type: "string", default: "60" },
@@ -121,6 +124,7 @@ if (command === "time") {
       ...MOTION_FLAG,
       n: { type: "string", default: "1000,5000" },
       runs: { type: "string", default: "1" },
+      order: { type: "string", default: "forward" },
       frames: { type: "string", default: "300" },
       warmup: { type: "string", default: "60" },
       help: { type: "boolean", short: "h" },

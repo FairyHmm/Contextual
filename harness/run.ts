@@ -6,22 +6,23 @@ import {
   VIEWPORT,
   appUrl,
   launch,
-  select,
   startApp,
 } from "./lib.ts";
-import { banner, heading, paintTable } from "./paint.ts";
+import { banner, heading, paintTable, yellow } from "./paint.ts";
 import { type Mode, header, summarize } from "./report.ts";
 import { type Sample, measure, recordFrames } from "./sample.ts";
+import { select } from "./select.ts";
 import { table } from "./table.ts";
 
 export interface RunOptions {
-  variant: string | undefined;
   method: string | undefined;
   query: string | undefined;
   ns: number[];
   runs: number;
   motion: string;
   mode: Mode;
+  /** `abba` reverses the entry order every other repeat (A B B A for two). */
+  order: "forward" | "abba";
 }
 
 async function collect(
@@ -40,7 +41,11 @@ async function collect(
   const samples = new Map<string, Sample[]>();
   for (const e of entries) samples.set(e.name, []);
   for (let repeat = 1; repeat <= opts.runs; repeat++) {
-    for (const entry of entries) {
+    const ordered =
+      opts.order === "abba" && repeat % 2 === 0
+        ? entries.toReversed()
+        : entries;
+    for (const entry of ordered) {
       const label = `n=${n} run ${repeat}/${opts.runs} ${entry.name}`;
       if (process.stderr.isTTY) process.stderr.write(`\r${label}\u001b[K`);
       else console.error(label);
@@ -73,7 +78,7 @@ export async function run(opts: RunOptions): Promise<void> {
     "privacy.reduceTimerPrecision": false, // timer precision
   });
   try {
-    const entries = select(app.entries, opts);
+    const { entries, shared } = select(app.entries, opts);
     const page = await browser.newPage({ viewport: VIEWPORT });
     const mode = opts.mode;
     const budget = mode.capped ? 1000 / mode.hz : 0;
@@ -93,8 +98,21 @@ export async function run(opts: RunOptions): Promise<void> {
         opts.runs,
         VIEWPORT.width,
         VIEWPORT.height,
+        opts.order,
       ),
     );
+    if (shared.length > 0) {
+      const names = shared
+        .map(name => entries.filter(e => e.method === name))
+        .map(hits => hits.map(e => e.name).join(" + "))
+        .join(", ");
+      console.log(
+        yellow(
+          `! ${shared.join(", ")} exists in more than one variant: ` +
+            `running ${names}. Use --method html/translate to pick one.`,
+        ),
+      );
+    }
     for (const n of opts.ns) {
       const samples = await collect(page, app, entries, n, opts, budget);
       const rows = entries.map(e =>

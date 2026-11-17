@@ -12,9 +12,9 @@ import {
   appUrl,
   launch,
   motionOf,
-  select,
   startApp,
 } from "./lib.ts";
+import { select } from "./select.ts";
 
 // Equivalence check: same seed and frame, every method against the reference.
 // Screenshots go to out/equivalence/.
@@ -95,7 +95,21 @@ const browser = await launch();
 try {
   const reference = app.entries.find(e => e.name === REFERENCE);
   if (reference === undefined) throw new Error(`no reference ${REFERENCE}`);
-  const others = select(app.entries, values).filter(e => e !== reference);
+  const { entries: picked, shared } = select(app.entries, values);
+  const others = picked.filter(e => e !== reference);
+  if (shared.length > 0) {
+    console.log(
+      `! ${shared.join(", ")} exists in more than one variant: ` +
+        `checking ${shared
+          .map(n =>
+            others
+              .filter(e => e.method === n)
+              .map(e => e.name)
+              .join(" + "),
+          )
+          .join(", ")}. Use --method html/translate to pick one.`,
+    );
+  }
 
   const page = await browser.newPage({ viewport: VIEWPORT });
   // `__name` shim for esbuild-wrapped functions in page.evaluate.

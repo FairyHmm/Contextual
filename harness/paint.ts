@@ -24,6 +24,7 @@ export const banner = (
   runs: number,
   width: number,
   height: number,
+  order: "forward" | "abba" = "forward",
 ): string => {
   const windowText = mode.timeBased
     ? `${mode.seconds} s window after ${mode.warmupSeconds} s warm-up`
@@ -52,7 +53,8 @@ export const banner = (
           ? cyan(`capped ${mode.hz} Hz vsync`)
           : magenta("uncapped rAF")),
     ),
-    `${windowText} · ${runs} run${runs > 1 ? "s" : ""}`,
+    `${windowText} · ${runs} run${runs > 1 ? "s" : ""} · ` +
+      (order === "abba" ? "ABBA order" : "forward order"),
     `${pace} · ${stop}`,
     ...metrics,
   ].join("\n");

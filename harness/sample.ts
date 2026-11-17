@@ -1,13 +1,8 @@
 import type { Page } from "playwright";
 
-// Records the rAF timestamp (vsync time), the interval since the previous
-// frame, and the callback duration. Two modes:
-// - frame mode (limit > 0): stop after a fixed number of frames; the callback
-//   gets a synthetic clock in ms stepping 1000/60, so every method simulates
-//   the same number of steps. Slow methods take longer in wall-clock time.
-// - time mode (totalMs > 0): stop after a fixed wall-clock window; the callback
-//   gets real elapsed ms, so the sim advances in real time and slow methods
-//   present fewer frames instead of running longer.
+// Injects a rAF recorder. Frame mode (limit > 0) stops after N frames on a
+// synthetic 1/60 s clock; time mode (totalMs > 0) stops after a wall-clock
+// window on real elapsed ms.
 export const recordFrames = (
   limit: number,
   totalMs: number,
@@ -94,7 +89,6 @@ export async function measure(
       ? "window.__done === true"
       : `window.__frames.length >= ${opts.warmup + opts.frames}`,
     undefined,
-    // Interval polling: the page stops its own rAF at the limit.
     { polling: 100, timeout: opts.totalMs > 0 ? 120_000 : 0 },
   );
   const recorded =
@@ -103,15 +97,14 @@ export async function measure(
     opts.totalMs > 0
       ? recorded
       : recorded.slice(opts.warmup, opts.warmup + opts.frames);
-  // The recorder stores the interval from the previous frame, so the first
-  // kept frame already has the interval from the last warm-up frame.
+  // The first kept frame carries the interval from the last warm-up frame.
   const intervals = kept.map(([, interval]) => interval);
   const work = kept.map(([, , js]) => js);
   // Browser = per-frame interval minus JS.
   const browser = intervals.map((interval, i) =>
     Math.max(0, interval - work[i]),
   );
-  // A frame that misses one vsync spans two refresh intervals.
+  // A frame spanning two refresh intervals missed one vsync.
   const missed =
     budget > 0
       ? intervals.map(interval =>

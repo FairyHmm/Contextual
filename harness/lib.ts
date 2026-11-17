@@ -11,14 +11,13 @@ export const VIEWPORT = { width: 1280, height: 720 };
 
 /** ParseArgs filter flags. */
 export const FILTER_FLAGS = {
-  variant: { type: "string" },
   method: { type: "string" },
   query: { type: "string" },
 } as const;
 
-export const FILTER_HELP = `  --variant a,b    only these variants (groups), e.g. canvas,html
-  --method a,b     only methods with these names, in any variant
-  --query k=v&k=v  extra URL params for every page (e.g. a later scenario)`;
+export const FILTER_HELP = `  --method a,b      what to measure: html (a variant), html/translate
+                      (one method), or translate (that name in every variant)
+  --query k=v&k=v     extra URL params for every page (e.g. a later scenario)`;
 
 /** ParseArgs options and help for the motion scenario. */
 export const MOTION_FLAG = { motion: { type: "string" } } as const;
@@ -96,32 +95,6 @@ export async function startApp(): Promise<App> {
       })),
   );
   return { server, base, entries, close: () => server.close() };
-}
-
-/** Narrow entries by the --variant and --method flags; unknown names fail. */
-export function select(
-  entries: Entry[],
-  flags: { variant?: string | undefined; method?: string | undefined },
-): Entry[] {
-  const variants = list(flags.variant);
-  const methods = list(flags.method);
-  const unknown = [
-    ...variants
-      .filter(v => !entries.some(e => e.variant === v))
-      .map(v => `variant ${v}`),
-    ...methods
-      .filter(m => !entries.some(e => e.method === m))
-      .map(m => `method ${m}`),
-  ];
-  if (unknown.length > 0) {
-    const have = entries.map(e => e.name).join(", ");
-    throw new Error(`unknown ${unknown.join(", ")}. Available: ${have}`);
-  }
-  return entries.filter(
-    e =>
-      (variants.length === 0 || variants.includes(e.variant)) &&
-      (methods.length === 0 || methods.includes(e.method)),
-  );
 }
 
 /** The page for one entry; `params` and then `--query` go on the URL. */
