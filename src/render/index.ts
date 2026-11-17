@@ -1,11 +1,14 @@
 import type { Variant } from "../app/params";
 import { config as canvas } from "./canvas";
 import { config as html } from "./html";
+import { many, single } from "./svg";
 import type { RendererFactory, VariantDef } from "./utils/types";
 
 export const IMPLEMENTATIONS: Partial<Record<Variant, VariantDef>> = {
   canvas,
   html,
+  "svg-many": many,
+  "svg-path": single,
 };
 
 /** The renderer for a variant and method, or an error saying what exists. */
