@@ -8,7 +8,7 @@ import { select } from "../harness/select";
 // has three shapes, and these tests pin how each one resolves.
 
 const ENTRIES: Entry[] = [
-  { variant: "canvas", method: "sprite", name: "canvas/sprite" },
+  { variant: "2d", method: "sprite", name: "2d/sprite" },
   { variant: "html", method: "translate", name: "html/translate" },
   { variant: "html", method: "transform", name: "html/transform" },
   { variant: "svg-many", method: "translate", name: "svg-many/translate" },
@@ -53,7 +53,7 @@ describe("select", () => {
       method: "svg-many/translate,sprite,translate",
     });
     expect(entries.map(e => e.name)).toEqual([
-      "canvas/sprite",
+      "2d/sprite",
       "html/translate",
       "svg-many/translate",
     ]);

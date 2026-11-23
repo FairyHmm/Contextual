@@ -8,7 +8,10 @@ const DELTA = {
 };
 
 /** Decides how a run advances the scene and when it draws. */
-export type Driver = (sim: Simulation, renderer: Renderer) => void;
+export type Driver = (
+  sim: Simulation,
+  renderer: Renderer,
+) => void | Promise<void>;
 
 /** Live driver: dt from the rAF timestamp, capped at DELTA.MAX. */
 export const live: Driver = (sim, renderer) => {
@@ -16,7 +19,7 @@ export const live: Driver = (sim, renderer) => {
   const frame = (now: number): void => {
     if (last !== null) sim.step(Math.min((now - last) / 1000, DELTA.MAX));
     last = now;
-    renderer.render(sim.world);
+    void renderer.render(sim.world);
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
@@ -27,7 +30,7 @@ export const frozen =
   (steps: number): Driver =>
   (sim, renderer) => {
     for (let k = 0; k < steps; k++) sim.step(DELTA.FIXED);
-    renderer.render(sim.world);
+    return renderer.render(sim.world);
   };
 
 /** `?freeze=k` selects the frozen driver; without it the run is live. */

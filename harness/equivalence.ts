@@ -24,7 +24,7 @@ const HELP = `pnpm equivalence [options]
 ${FILTER_HELP}
 ${MOTION_HELP}`;
 
-const REFERENCE = "canvas/sprite";
+const REFERENCE = "2d/sprite";
 const SEED = "1";
 const CASES = [
   { n: 100, freeze: 0 },

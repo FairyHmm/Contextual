@@ -7,7 +7,16 @@ import { IMPLEMENTATIONS } from "../src/render";
 // tests pin its shape — including which method each variant runs by default,
 // which is a measured choice rather than an arbitrary one.
 
-const VARIANTS: Variant[] = ["canvas", "html", "svg-many", "svg-path"];
+const VARIANTS: Variant[] = [
+  "2d",
+  "webgl",
+  "webgl2",
+  "webgpu",
+  "bitmaprenderer",
+  "html",
+  "svg-many",
+  "svg-path",
+];
 
 const methods = (variant: Variant): string[] =>
   Object.keys(IMPLEMENTATIONS[variant]?.methods ?? {});
@@ -33,7 +42,7 @@ describe("render registry", () => {
   it("defaults to the fastest measured method per variant", () => {
     // sprite is the simplest blit; translate the cheapest HTML write;
     // image the fastest svg-many write (cached sprite); d-rel the fastest single path.
-    expect(fallback("canvas")).toBe("sprite");
+    expect(fallback("2d")).toBe("sprite");
     expect(fallback("html")).toBe("translate");
     expect(fallback("svg-many")).toBe("image");
     expect(fallback("svg-path")).toBe("d-rel");

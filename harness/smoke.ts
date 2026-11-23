@@ -14,7 +14,7 @@ try {
   const page = await browser.newPage({
     viewport: { width: 1280, height: 720 },
   });
-  await page.goto(`${base}?variant=canvas&n=100&seed=1`);
+  await page.goto(`${base}?variant=2d&n=100&seed=1`);
   await mkdir("out", { recursive: true });
   await page.screenshot({ path: "out/smoke.png" });
   const env = await page.evaluate(() => ({

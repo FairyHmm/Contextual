@@ -16,7 +16,7 @@ describe("parseParams", () => {
 
   it("falls back to defaults on bad input", () => {
     expect(parseParams("?variant=nope&n=-3")).toEqual({
-      variant: "canvas",
+      variant: "2d",
       n: 100,
       seed: 1,
       motion: "line",

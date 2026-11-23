@@ -1,4 +1,13 @@
-export const VARIANTS = ["canvas", "html", "svg-many", "svg-path"] as const;
+export const VARIANTS = [
+  "2d",
+  "webgl",
+  "webgl2",
+  "webgpu",
+  "bitmaprenderer",
+  "html",
+  "svg-many",
+  "svg-path",
+] as const;
 export type Variant = (typeof VARIANTS)[number];
 
 /** Motion scenarios. */
@@ -38,7 +47,7 @@ export function parseParams(search: string): RunParams {
   const freezeRaw = q.get("freeze");
   const freeze = freezeRaw === null ? Number.NaN : Number(freezeRaw);
   return {
-    variant: isOf(variant, VARIANTS) ? variant : "canvas",
+    variant: isOf(variant, VARIANTS) ? variant : "2d",
     n: Number.isInteger(n) && n > 0 ? n : LEVELS[0],
     seed: Number.isInteger(seed) ? seed : DEFAULT_SEED,
     motion: isOf(motion, MOTIONS) ? motion : "line",

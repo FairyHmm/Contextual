@@ -122,6 +122,7 @@ export function launch(
     headless: false,
     firefoxUserPrefs: {
       "layout.css.typed-om.enabled": true, // for html/typed
+      "dom.webgpu.enabled": true, // navigator.gpu, for canvas/webgpu
       ...prefs,
     },
   });

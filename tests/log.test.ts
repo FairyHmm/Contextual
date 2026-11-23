@@ -15,9 +15,9 @@ import type { Frame, Sample } from "../harness/sample";
 // The header is inferred from the row keys and kebab-cased.
 
 const entry: Entry = {
-  variant: "canvas",
+  variant: "2d",
   method: "sprite",
-  name: "canvas/sprite",
+  name: "2d/sprite",
 };
 
 const mode: Mode = {
@@ -92,7 +92,7 @@ describe("log", () => {
       "js",
     ]);
     expect(rows[1]).toEqual([
-      "canvas",
+      "2d",
       "sprite",
       "line",
       "1000",

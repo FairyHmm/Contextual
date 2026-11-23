@@ -6,5 +6,12 @@
     "allowImportingTsExtensions": true,
     "types": ["vite/client", "node"]
   },
-  "include": ["src", "harness", "tests", "vite.config.ts", "vitest.config.ts"]
+  "include": [
+    "src",
+    "harness",
+    "scripts",
+    "tests",
+    "vite.config.ts",
+    "vitest.config.ts"
+  ]
 }
