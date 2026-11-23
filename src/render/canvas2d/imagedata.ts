@@ -1,5 +1,5 @@
-import { CIRCLE, STYLE } from "../utils/visual";
-import { circleTile, method, rgb } from "./setup";
+import { CIRCLE, STYLE, rgb } from "../utils/visual";
+import { circleTile, method } from "./setup";
 
 const [BR, BG, BB] = rgb(STYLE.BACKGROUND);
 const LITTLE_ENDIAN = new Uint8Array(new Uint32Array([1]).buffer)[0] === 1;

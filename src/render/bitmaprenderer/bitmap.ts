@@ -2,7 +2,7 @@ import type { World } from "../../sim/utils/world";
 import { circleTile } from "../canvas2d/setup";
 import { surface } from "../utils/surface";
 import type { RendererFactory } from "../utils/types";
-import { CIRCLE, STYLE } from "../utils/visual";
+import { STYLE, circleStyle } from "../utils/visual";
 
 /** Any 2D context: the offscreen and on-screen sources use the same calls. */
 type Painter2D = CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
@@ -39,14 +39,15 @@ function target(stage: HTMLElement, world: World) {
   const { canvas, dpr, width, height } = surface(stage, world);
   const ctx = canvas.getContext("bitmaprenderer");
   if (ctx === null) throw new Error("bitmaprenderer context unavailable");
+  const style = circleStyle(dpr);
   return {
     ctx,
     dpr,
     width,
     height,
     brush: {
-      tile: circleTile(Math.round(CIRCLE.DIAMETER * dpr)),
-      offset: CIRCLE.RADIUS * dpr,
+      tile: circleTile(Math.round(style.diameter)),
+      offset: style.radius,
     } satisfies Brush,
   };
 }

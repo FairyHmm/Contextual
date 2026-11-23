@@ -1,7 +1,8 @@
 import type { World } from "../../sim/utils/world";
+import { packPositions } from "../utils/positions";
 import { surface } from "../utils/surface";
 import type { RendererFactory } from "../utils/types";
-import { CIRCLE, STYLE, rgb01 } from "../utils/visual";
+import { circleStyle } from "../utils/visual";
 import shader from "./instanced.wgsl";
 
 // TS 7's lib.dom declares only the *Flags aliases, not the runtime enum
@@ -46,14 +47,10 @@ export const instanced: RendererFactory = (stage, world) => {
   // WGSL std140-like layout: vec2 size, f32 diameter, f32 radius, vec3 fill,
   // one pad float, vec3 bg, one pad float. 12 floats = 48 bytes.
   const uniformData = new Float32Array(12);
-  const [fr, fg, fb] = rgb01(STYLE.FILL);
-  const [br, bg, bb] = rgb01(STYLE.BACKGROUND);
-  uniformData.set([
-    width,
-    height,
-    CIRCLE.DIAMETER * dpr,
-    (CIRCLE.DIAMETER * dpr) / 2,
-  ]);
+  const style = circleStyle(dpr);
+  const [fr, fg, fb] = style.fill;
+  const [br, bg, bb] = style.background;
+  uniformData.set([width, height, style.diameter, style.radius]);
   uniformData.set([fr, fg, fb], 4);
   uniformData.set([br, bg, bb], 8);
 
@@ -107,10 +104,7 @@ export const instanced: RendererFactory = (stage, world) => {
     render(w: World) {
       const state = gpu.current;
       if (state === null) return;
-      for (let i = 0; i < w.n; i++) {
-        data[i * 2] = w.x[i] * dpr;
-        data[i * 2 + 1] = w.y[i] * dpr;
-      }
+      packPositions(data, w, dpr);
       state.device.queue.writeBuffer(state.instances, 0, data);
       const encoder = state.device.createCommandEncoder();
       const pass = encoder.beginRenderPass({

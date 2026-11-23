@@ -1,4 +1,5 @@
 import type { World } from "../../sim/utils/world";
+import { surface } from "../utils/surface";
 import type { RendererFactory } from "../utils/types";
 import { CIRCLE, STYLE } from "../utils/visual";
 
@@ -16,12 +17,7 @@ export type Painter = (dpr: number) => Paint;
  */
 export function method(painter: Painter, clear = true): RendererFactory {
   return (stage, world) => {
-    const dpr = window.devicePixelRatio;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(world.width * dpr);
-    canvas.height = Math.round(world.height * dpr);
-    canvas.style.cssText = `display:block;width:${world.width}px;height:${world.height}px`;
-    stage.append(canvas);
+    const { canvas, dpr, width, height } = surface(stage, world);
     const ctx = canvas.getContext("2d", { alpha: false });
     if (ctx === null) throw new Error("2d context unavailable");
     const paint = painter(dpr);
@@ -30,7 +26,7 @@ export function method(painter: Painter, clear = true): RendererFactory {
         if (clear) {
           ctx.setTransform(1, 0, 0, 1, 0, 0);
           ctx.fillStyle = STYLE.BACKGROUND;
-          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillRect(0, 0, width, height);
         }
         ctx.fillStyle = STYLE.FILL;
         paint(ctx, w);
@@ -58,10 +54,4 @@ export function circlePath(): Path2D {
   const circle = new Path2D();
   circle.arc(0, 0, CIRCLE.RADIUS, 0, TAU);
   return circle;
-}
-
-/** Parses `#rrggbb` into RGB channels. */
-export function rgb(hex: string): [number, number, number] {
-  const value = Number.parseInt(hex.slice(1), 16);
-  return [(value >> 16) & 255, (value >> 8) & 255, value & 255];
 }
