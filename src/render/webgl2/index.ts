@@ -1,7 +1,15 @@
 import type { VariantDef } from "../utils/types";
-import { quads } from "./quads";
+import { pointsMethods } from "./points";
+import { quadsMethods } from "./quads";
+import { texture } from "./texture";
+import { vertexId } from "./vertex-id";
 
 export const config = {
-  default: "quads",
-  methods: { quads },
+  default: "points-texture",
+  methods: {
+    ...quadsMethods,
+    ...pointsMethods,
+    "vertex-id": vertexId,
+    texture,
+  },
 } satisfies VariantDef;

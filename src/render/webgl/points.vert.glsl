@@ -1,10 +1,11 @@
-attribute vec2 a_pos;
+attribute float a_x;
+attribute float a_y;
 uniform vec2 u_size;
 uniform float u_diameter;
 varying float v_radius;
 
 void main() {
-  vec2 center = floor(a_pos + 0.5);
+  vec2 center = floor(vec2(a_x, a_y) + 0.5);
   vec2 clip = vec2(
     center.x / u_size.x * 2.0 - 1.0,
     1.0 - center.y / u_size.y * 2.0

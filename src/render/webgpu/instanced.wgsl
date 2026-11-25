@@ -15,13 +15,17 @@ struct VSOut {
 #include "../utils/circle.wgsl"
 
 @vertex
-fn vs(@builtin(vertex_index) vi: u32, @location(0) center: vec2f) -> VSOut {
-  var corners = array<vec2f, 6>(
-    vec2f(-0.5, -0.5), vec2f(0.5, -0.5), vec2f(-0.5, 0.5),
-    vec2f(-0.5, 0.5), vec2f(0.5, -0.5), vec2f(0.5, 0.5)
+fn vs(
+  @builtin(vertex_index) vi: u32,
+  @location(0) x: f32,
+  @location(1) y: f32
+) -> VSOut {
+  var corners = array<vec2f, 4>(
+    vec2f(-0.5, -0.5), vec2f(0.5, -0.5),
+    vec2f(-0.5, 0.5), vec2f(0.5, 0.5)
   );
   let c = corners[vi];
-  let snapped = floor(center + 0.5);
+  let snapped = floor(vec2f(x, y) + 0.5);
   let px = snapped + c * u.diameter;
   let clip = vec2f(px.x / u.size.x * 2.0 - 1.0, 1.0 - px.y / u.size.y * 2.0);
   var out: VSOut;
